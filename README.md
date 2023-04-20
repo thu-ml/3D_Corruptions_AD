@@ -160,14 +160,40 @@ class CorruptionMethods(object):
                         'sun_sim':2,
                     },
                  ):
+                 
         self.corruption_severity_dict = corruption_severity_dict
+        
         if 'sun_sim' in self.corruption_severity_dict:
             np.random.seed(2022)
             severity = self.corruption_severity_dict['sun_sim']
             self.sun_sim = ImagePointAddSun(severity)
             self.sun_sim_mono = ImageAddSunMono(severity)
+            
+         #for multiple cameras corruption
+         
+        if 'object_motion_sim' in self.corruption_severity_dict:
+            # for kitti and nus
+            severity = self.corruption_severity_dict['object_motion_sim']
+            self.object_motion_sim_frontback = ImageBBoxMotionBlurFrontBack(
+                severity=severity,
+                corrput_list=[0.02 * i for i in range(1, 6)],
+            )
+            self.object_motion_sim_leftright = ImageBBoxMotionBlurLeftRight(
+                severity=severity,
+                corrput_list=[0.02 * i for i in range(1, 6)],
+            )
+            self.object_motion_sim_frontback_mono = ImageBBoxMotionBlurFrontBackMono(
+                severity=severity,
+                corrput_list=[0.02 * i for i in range(1, 6)],
+            )
+            self.object_motion_sim_leftright_mono = ImageBBoxMotionBlurLeftRightMono(
+                severity=severity,
+                corrput_list=[0.02 * i for i in range(1, 6)],
+            )
+            
+            
     
-    def __call__(self, results):
+def __call__(self, results):
         """Call function to augment common corruptions.
         """
         if 'sun_sim' in self.corruption_severity_dict:
@@ -183,7 +209,7 @@ class CorruptionMethods(object):
                 cam2img = np.array(cam2img)
                 use_mono_dataset = True
             else:
-                raise AssertionError('zzj: no lidar2img or cam_intrinsic found!')
+                raise AssertionError('no lidar2img or cam_intrinsic found!')
 
             if not use_mono_dataset:
                 points_tensor = results['points'].tensor
@@ -256,10 +282,174 @@ class CorruptionMethods(object):
                 image_aug_bgr = image_aug_rgb[:, :, [2, 1, 0]]
                 results['img'] = image_aug_bgr
 
+        if 'object_motion_sim' in self.corruption_severity_dict:
+            img_bgr_255_np_uint8 = results['img']
+            # points_tensor = results['points'].tensor
+            if 'lidar2img' in results:
+                lidar2img = results['lidar2img']  
+                use_mono_dataset = False
+            elif 'cam_intrinsic' in results['img_info']:
+                cam2img = results['img_info']['cam_intrinsic']  
+                import numpy as np
+                cam2img = np.array(cam2img)
+                use_mono_dataset = True
+            else:
+                raise AssertionError('no lidar2img or cam_intrinsic found!')
+            
+            bboxes_corners = results['gt_bboxes_3d'].corners
+            bboxes_centers = results['gt_bboxes_3d'].center
+
+
+            if type(bboxes_corners) == int:
+                print(0)
+
+            if type(bboxes_corners) != int:
+
+                if not use_mono_dataset:
+                    if type(img_bgr_255_np_uint8) == list and len(img_bgr_255_np_uint8) == 6:
+                        '''
+                        nuscenes:
+                        0    CAM_FRONT,
+                        1    CAM_FRONT_RIGHT,
+                        2    CAM_FRONT_LEFT,
+                        3    CAM_BACK,
+                        4    CAM_BACK_LEFT,
+                        5    CAM_BACK_RIGHT
+                        '''
+                        image_aug_bgr = []
+                        for i in range(6):
+                            img_rgb_255_np_uint8_i = img_bgr_255_np_uint8[i][:, :, [2, 1, 0]]
+                            lidar2img_i = lidar2img[i]
+
+                            if i % 3 == 0:
+                                image_aug_rgb_i = self.object_motion_sim_frontback(
+                                    image=img_rgb_255_np_uint8_i,
+                                    bboxes_centers=bboxes_centers,
+                                    bboxes_corners=bboxes_corners,
+                                    lidar2img=lidar2img_i,
+                                    # watch_img=True,
+                                    # file_path='2.jpg'
+                                )
+                            else:
+                                image_aug_rgb_i = self.object_motion_sim_leftright(
+                                    image=img_rgb_255_np_uint8_i,
+                                    bboxes_centers=bboxes_centers,
+                                    bboxes_corners=bboxes_corners,
+                                    lidar2img=lidar2img_i,
+                                    # watch_img=True,
+                                    # file_path='2.jpg'
+                                )
+                                # print('object_motion_sim_leftright:', time_inter)
+                            image_aug_bgr_i = image_aug_rgb_i[:, :, [2, 1, 0]]
+                            image_aug_bgr.append(image_aug_bgr_i)
+                        results['img'] = image_aug_bgr
+
+                    elif type(img_bgr_255_np_uint8) == list and len(img_bgr_255_np_uint8) == 5:
+                        '''
+                        nuscenes:
+                        0    CAM_FRONT,
+                        1    CAM_FRONT_RIGHT,
+                        2    CAM_FRONT_LEFT,
+                        3    CAM_BACK,
+                        4    CAM_BACK_LEFT,
+                        5    CAM_BACK_RIGHT
+                        '''
+                        image_aug_bgr = []
+                        for i in range(5):
+                            img_rgb_255_np_uint8_i = img_bgr_255_np_uint8[i][:, :, [2, 1, 0]]
+                            lidar2img_i = lidar2img[i]
+
+                            # if i % 3 == 0:
+                            if i == 0:
+                                image_aug_rgb_i = self.object_motion_sim_frontback(
+                                    image=img_rgb_255_np_uint8_i,
+                                    bboxes_centers=bboxes_centers,
+                                    bboxes_corners=bboxes_corners,
+                                    lidar2img=lidar2img_i,
+                                    # watch_img=True,
+                                    # file_path='2.jpg'
+                                )
+                            else:
+                                image_aug_rgb_i = self.object_motion_sim_leftright(
+                                    image=img_rgb_255_np_uint8_i,
+                                    bboxes_centers=bboxes_centers,
+                                    bboxes_corners=bboxes_corners,
+                                    lidar2img=lidar2img_i,
+                                    # watch_img=True,
+                                    # file_path='2.jpg'
+                                )
+                                # print('object_motion_sim_leftright:', time_inter)
+                            image_aug_bgr_i = image_aug_rgb_i[:, :, [2, 1, 0]]
+                            image_aug_bgr.append(image_aug_bgr_i)
+                        results['img'] = image_aug_bgr
+
+                    else:
+                        img_rgb_255_np_uint8 = img_bgr_255_np_uint8[:, :, [2, 1, 0]]
+                        # points_tensor = results['points'].tensor
+                        lidar2img = results['lidar2img']
+                        bboxes_corners = results['gt_bboxes_3d'].corners
+                        bboxes_centers = results['gt_bboxes_3d'].center
+
+                        image_aug_rgb = self.object_motion_sim_frontback(
+                            image=img_rgb_255_np_uint8,
+                            bboxes_centers=bboxes_centers,
+                            bboxes_corners=bboxes_corners,
+                            lidar2img=lidar2img,
+                            # watch_img=True,
+                            # file_path='2.jpg'
+                        )
+                        image_aug_bgr = image_aug_rgb[:, :, [2, 1, 0]]
+                        results['img'] = image_aug_bgr
+
+                else:
+                    img_rgb_255_np_uint8 = img_bgr_255_np_uint8[:, :, [2, 1, 0]]
+                    image_aug_rgb = self.object_motion_sim_frontback_mono(
+                        image=img_rgb_255_np_uint8,
+                        bboxes_centers=bboxes_centers,
+                        bboxes_corners=bboxes_corners,
+                        cam2img=cam2img,
+                        # watch_img=True,
+                        # file_path='2.jpg'
+                    )
+                    image_aug_bgr = image_aug_rgb[:, :, [2, 1, 0]]
+                    results['img'] = image_aug_bgr
+
+
+        
+        #for lidar corruptions
+
+        if 'gaussian_noise' in self.corruption_severity_dict:
+            import numpy as np
+            pl = results['points'].tensor
+            severity = self.corruption_severity_dict['gaussian_noise']
+           # aug_pl = pl[:,:3]
+            points_aug = gaussian_noise(pl.numpy(), severity)
+            pl = torch.from_numpy(points_aug)
+            results['points'].tensor = pl
+
+        #for lidar corruptions with bbox
+        
+        if 'cutout_bbox' in self.corruption_severity_dict:
+            import numpy as np
+            pl = results['points'].tensor
+            data = []
+            # data.append(results['gt_bboxes_3d'])
+            if 'gt_bboxes_3d' in results:
+                data.append(results['gt_bboxes_3d'])
+            else:
+                #waymo
+                data.append(results['ann_info']['gt_bboxes_3d'])
+            severity = self.corruption_severity_dict['cutout_bbox']
+            points_aug = cutout_bbox(pl.numpy(), severity,data)
+            pl = torch.from_numpy(points_aug)
+            results['points'].tensor = pl        
+            
+
 
 ```
 
-Then add followings to the test pipeline:
+Then add 'CorruptionMethods' to the test pipeline, modify the corresponding config files in `mmdetection3d/configs/`, the modification examples are:
+
 ```python
 test_pipeline = [
     dict(
@@ -294,6 +484,10 @@ test_pipeline = [
 
 ### Examples within OpenPCDet pipeline
 
+modify `OpenPCDet/pcdet/datasets/kitti/kitti_dataset.py`, the modification examples are:
+
+
+
 ```python
 class KittiDataset(DatasetTemplate):
     # def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None ):
@@ -306,6 +500,13 @@ class KittiDataset(DatasetTemplate):
             training:
             logger:
         """
+        
+    # load corruption type from script, self.corruptions[0] save lidar corruption type, self.corruptions[1] save image corruption type
+        
+    MAP = {
+    'rain_sim': rain_sim,
+    ...
+    }
     
     # for lidar 
     def get_lidar(self, idx):
@@ -325,12 +526,6 @@ class KittiDataset(DatasetTemplate):
         if self.corruptions[1] == 'rain_sim':
             image_add_some_func = ImageAddRain(severity=self.severity, seed=2022)
             image = image_add_some_func(image, True,'./test.png')
-        
-
-
-
-
-
+      
+      
 ```
-
-
