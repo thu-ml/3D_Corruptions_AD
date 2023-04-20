@@ -442,17 +442,13 @@ def __call__(self, results):
             severity = self.corruption_severity_dict['cutout_bbox']
             points_aug = cutout_bbox(pl.numpy(), severity,data)
             pl = torch.from_numpy(points_aug)
-            results['points'].tensor = pl
-
-
-                
+            results['points'].tensor = pl        
             
 
 
 ```
 
-Then add 'CorruptionMethods dict' to the test pipeline:
-modify corresponding config file in `mmdetection3d/configs/`, the modification examples are:
+Then add 'CorruptionMethods' to the test pipeline, modify the corresponding config files in `mmdetection3d/configs/`, the modification examples are:
 
 ```python
 test_pipeline = [
@@ -488,6 +484,10 @@ test_pipeline = [
 
 ### Examples within OpenPCDet pipeline
 
+modify `OpenPCDet/pcdet/datasets/kitti/kitti_dataset.py`, the modification examples are:
+
+
+
 ```python
 class KittiDataset(DatasetTemplate):
     # def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None ):
@@ -500,6 +500,13 @@ class KittiDataset(DatasetTemplate):
             training:
             logger:
         """
+        
+    # load corruption type from script, self.corruptions[0] save lidar corruption type, self.corruptions[1] save image corruption type
+        
+    MAP = {
+    'rain_sim': rain_sim,
+    ...
+    }
     
     # for lidar 
     def get_lidar(self, idx):
@@ -519,12 +526,6 @@ class KittiDataset(DatasetTemplate):
         if self.corruptions[1] == 'rain_sim':
             image_add_some_func = ImageAddRain(severity=self.severity, seed=2022)
             image = image_add_some_func(image, True,'./test.png')
-        
-
-
-
-
-
+      
+      
 ```
-
-
