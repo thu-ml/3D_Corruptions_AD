@@ -2,6 +2,8 @@
 
 Accepted to CVPR2023. 🔥
 
+![alt text](./Figure1.png)
+
 
 Here we only provide the functions of all corruptions in 3D object detection. The whole project is built upon MMDetection3D and OpenPCDet with necessary modifications of its source code.
 
@@ -528,4 +530,20 @@ class KittiDataset(DatasetTemplate):
             image = image_add_some_func(image, True,'./test.png')
       
       
+```
+
+
+## **Citation**
+
+If you find it useful, please consider citing: 😊
+
+```
+@misc{dong2023benchmarking,
+      title={Benchmarking Robustness of 3D Object Detection to Common Corruptions in Autonomous Driving}, 
+      author={Yinpeng Dong and Caixin Kang and Jinlai Zhang and Zijian Zhu and Yikai Wang and Xiao Yang and Hang Su and Xingxing Wei and Jun Zhu},
+      year={2023},
+      eprint={2303.11040},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
 ```
