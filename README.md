@@ -533,6 +533,41 @@ class KittiDataset(DatasetTemplate):
 ```
 
 
+## Getting Started in OpenPCDet
+
+### Implement Directly
+
+* Use the file package in `OpenPCDet/` to directly use our modified OpenPCDet pipeline.
+
+### Implement by modifying OpenPCDet
+
+* Firstly, please complete the reproduction of [OpenPCDet](https://github.com/open-mmlab/OpenPCDet).
+
+* Then, simply modify the files in folder `OpenPCDet/pcdet/datasets/kitti/` according to the one provided by us.
+
+* Then write the script according to the sample we provided in `script/run_pvrcnn.sh` and place it under `OpenPCDet/tools/`.
+
+## Reminder
+
+### For LiDAR corruptions
+
+* Among the LiDAR corruptions, KITTI-C do not include `FOV Lost`, `Motion Compensation` and `Temporal Misalignment`. 
+
+
+### For Camera corruptions
+
+* The Camera corruptions algorithm was first designed based on `MMDetection3D`. Therefore, bbox related Camera corruptions (including `Strong Sunlight`、`Shear`、`Scale`、`Rotation`) cannot be directly implemented in `OpenPCDet`, due to the lack of bbox parameters required for processing. Our approach is to save the corruptions images processed in `MMDetection3D` for inference, which can also accelerate the speed of inference.
+
+
+## Getting Started in MMDetection3D
+
+### Implement Directly
+
+* Use the file package in `TransFusion/` to directly use our modified MMDetection3D pipeline.
+* The running code is in `Run_Corruptions.md` under `TransFusion/`
+
+
+
 ## **Citation**
 
 If you find it useful, please consider citing: 😊
