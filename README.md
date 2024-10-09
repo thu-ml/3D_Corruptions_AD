@@ -1,6 +1,6 @@
  # Benchmarking Robustness of 3D Object Detection to Common Corruptions in Autonomous Driving
 
-This repository contains the official implementation of the paper "[Benchmarking Robustness of 3D Object Detection to Common Corruptions in Autonomous Driving](https://openaccess.thecvf.com/content/CVPR2023/papers/Dong_Benchmarking_Robustness_of_3D_Object_Detection_to_Common_Corruptions_CVPR_2023_paper.pdf)" by Yinpeng Dong, Caixin Kang, Jinlai Zhang, Zijian Zhu, Yikai Wang, Xiao Yang, Hang Su, Xingxing Wei, Jun Zhu.
+This repository contains the official implementation of the paper "[Benchmarking Robustness of 3D Object Detection to Common Corruptions in Autonomous Driving](https://openaccess.thecvf.com/content/CVPR2023/html/Dong_Benchmarking_Robustness_of_3D_Object_Detection_to_Common_Corruptions_CVPR_2023_paper.html)" by Yinpeng Dong, Caixin Kang, Jinlai Zhang, Zijian Zhu, Yikai Wang, Xiao Yang, Hang Su, Xingxing Wei, Jun Zhu.
 
 Accepted to CVPR2023. 🔥
 
